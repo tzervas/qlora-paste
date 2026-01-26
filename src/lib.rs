@@ -1,4 +1,4 @@
-//! [![github]](https://github.com/kang/qlora-paste)&ensp;[![crates-io]](https://crates.io/crates/qlora-paste)&ensp;[![docs-rs]](https://docs.rs/qlora-paste)
+//! [![github]](https://github.com/tzervas/qlora-paste)&ensp;[![crates-io]](https://crates.io/crates/qlora-paste)&ensp;[![docs-rs]](https://docs.rs/qlora-paste)
 //!
 //! [github]: https://img.shields.io/badge/github-8da0cb?style=for-the-badge&labelColor=555555&logo=github
 //! [crates-io]: https://img.shields.io/badge/crates.io-fc8d62?style=for-the-badge&labelColor=555555&logo=rust
@@ -141,7 +141,7 @@
 //! method_new!(Paste);  // expands to #[doc = "Create a new `Paste` object"]
 //! ```
 
-#![doc(html_root_url = "https://docs.rs/qlora-paste/1.0.19")]
+#![doc(html_root_url = "https://docs.rs/qlora-paste/1.0.20")]
 #![allow(
     clippy::derive_partial_eq_without_eq,
     clippy::doc_markdown,

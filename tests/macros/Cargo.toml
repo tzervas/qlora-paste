@@ -3,7 +3,7 @@ name = "qlora-paste-test-suite"
 version = "0.0.0"
 authors = [
     "David Tolnay <dtolnay@gmail.com>",
-    "Kang (qlora-paste maintainer)"
+    "Tyler Zervas <tz-dev@vectorweight.com>"
 ]
 edition = "2018"
 license = "MIT OR Apache-2.0"

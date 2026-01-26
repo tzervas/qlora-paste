@@ -1,9 +1,9 @@
 [package]
 name = "qlora-paste"
-version = "1.0.19"
+version = "1.0.20"
 authors = [
     "David Tolnay <dtolnay@gmail.com>",
-    "Kang (qlora-paste maintainer)"
+    "Tyler Zervas <tz-dev@vectorweight.com>"
 ]
 categories = ["development-tools", "no-std", "no-std::no-alloc"]
 description = "Macros for all your token pasting needs - Maintained fork of paste"
@@ -11,7 +11,7 @@ documentation = "https://docs.rs/qlora-paste"
 edition = "2018"
 keywords = ["macros"]
 license = "MIT OR Apache-2.0"
-repository = "https://github.com/kang/qlora-paste"
+repository = "https://github.com/tzervas/qlora-paste"
 rust-version = "1.92"
 
 [lib]
