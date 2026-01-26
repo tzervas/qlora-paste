@@ -5,7 +5,6 @@ on:
     branches: [master, main]
   pull_request:
   workflow_dispatch:
-  schedule: [cron: "40 1 * * *"]
 
 permissions:
   contents: read
@@ -28,7 +27,6 @@ jobs:
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{matrix.rust}}
-          components: rustfmt, clippy
       - name: Enable type layout randomization
         run: echo RUSTFLAGS=${RUSTFLAGS}\ -Zrandomize-layout >> $GITHUB_ENV
         if: matrix.rust == 'nightly'
@@ -102,10 +100,10 @@ jobs:
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-      - name: Install cargo-audit
-        run: cargo install cargo-audit --locked
-      - run: cargo audit
+      - name: Run security audit
+        uses: rustsec/audit-check@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
   cargo_deny:
     name: Cargo Deny
@@ -113,10 +111,7 @@ jobs:
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-      - name: Install cargo-deny
-        run: cargo install cargo-deny --locked
-      - run: cargo deny check
+      - uses: EmbarkStudios/cargo-deny-action@v2
 
   miri:
     name: Miri
