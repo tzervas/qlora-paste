@@ -1,6 +1,6 @@
 [package]
 name = "qlora-paste"
-version = "1.0.18"
+version = "1.0.19"
 authors = [
     "David Tolnay <dtolnay@gmail.com>",
     "Kang (qlora-paste maintainer)"
@@ -18,13 +18,14 @@ rust-version = "1.92"
 proc-macro = true
 
 [dev-dependencies]
-qlora-paste-test-suite = { version = "0", path = "tests/macros" }
+qlora-paste-test-suite = { path = "tests/macros" }
 rustversion = "1.0"
 trybuild = { version = "1.0.49", features = ["diff"] }
 cargo-husky = { version = "1.5", default-features = false, features = ["user-hooks"] }
 
+[workspace]
+members = ["tests/macros"]
+
 [package.metadata.docs.rs]
 targets = ["x86_64-unknown-linux-gnu"]
 rustdoc-args = ["--generate-link-to-definition"]
-
-[workspace]

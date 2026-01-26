@@ -141,7 +141,7 @@
 //! method_new!(Paste);  // expands to #[doc = "Create a new `Paste` object"]
 //! ```
 
-#![doc(html_root_url = "https://docs.rs/qlora-paste/1.0.18")]
+#![doc(html_root_url = "https://docs.rs/qlora-paste/1.0.19")]
 #![allow(
     clippy::derive_partial_eq_without_eq,
     clippy::doc_markdown,
