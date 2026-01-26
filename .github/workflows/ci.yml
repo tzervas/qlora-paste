@@ -48,7 +48,7 @@ jobs:
           path: target
           key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
       - run: cargo test --all-features
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         if: matrix.rust == 'nightly' && always()
         with:
           name: Cargo.lock
