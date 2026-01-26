@@ -117,7 +117,7 @@ fn do_paste_name_value_attr(attr: TokenStream, span: Span, leading: usize) -> Re
                 } else {
                     let begin = open_quote + 1;
                     let end = string.value.rfind('"').unwrap();
-                    let raw_string = mem::replace(&mut string.value, String::new());
+                    let raw_string = mem::take(&mut string.value);
                     for ch in raw_string[begin..end].chars() {
                         string.value.extend(ch.escape_default());
                     }

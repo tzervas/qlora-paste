@@ -1,4 +1,4 @@
-use paste::paste;
+use qlora_paste::paste;
 
 paste! {
     fn [<a env!("PASTE_UNKNOWN") b>]() {}

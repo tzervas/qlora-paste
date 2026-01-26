@@ -1,7 +1,7 @@
 #![allow(clippy::let_underscore_untyped)]
 
-use paste::paste;
-use paste_test_suite::paste_test;
+use qlora_paste::paste;
+use qlora_paste_test_suite::paste_test;
 
 #[test]
 fn test_attr() {
@@ -9,10 +9,10 @@ fn test_attr() {
         #[paste_test(k = "val" "ue")]
         struct A;
 
-        #[paste_test_suite::paste_test(k = "val" "ue")]
+        #[qlora_paste_test_suite::paste_test(k = "val" "ue")]
         struct B;
 
-        #[::paste_test_suite::paste_test(k = "val" "ue")]
+        #[::qlora_paste_test_suite::paste_test(k = "val" "ue")]
         struct C;
 
         #[paste_test(k = "va" [<l u>] e)]

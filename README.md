@@ -1,12 +1,14 @@
 Macros for all your token pasting needs
 =======================================
 
-[<img alt="github" src="https://img.shields.io/badge/github-dtolnay/paste-8da0cb?style=for-the-badge&labelColor=555555&logo=github" height="20">](https://github.com/dtolnay/paste)
-[<img alt="crates.io" src="https://img.shields.io/crates/v/paste.svg?style=for-the-badge&color=fc8d62&logo=rust" height="20">](https://crates.io/crates/paste)
-[<img alt="docs.rs" src="https://img.shields.io/badge/docs.rs-paste-66c2a5?style=for-the-badge&labelColor=555555&logo=docs.rs" height="20">](https://docs.rs/paste)
-[<img alt="build status" src="https://img.shields.io/github/actions/workflow/status/dtolnay/paste/ci.yml?branch=master&style=for-the-badge" height="20">](https://github.com/dtolnay/paste/actions?query=branch%3Amaster)
+[<img alt="github" src="https://img.shields.io/badge/github-kang/qlora--paste-8da0cb?style=for-the-badge&labelColor=555555&logo=github" height="20">](https://github.com/kang/qlora-paste)
+[<img alt="crates.io" src="https://img.shields.io/crates/v/qlora-paste.svg?style=for-the-badge&color=fc8d62&logo=rust" height="20">](https://crates.io/crates/qlora-paste)
+[<img alt="docs.rs" src="https://img.shields.io/badge/docs.rs-qlora--paste-66c2a5?style=for-the-badge&labelColor=555555&logo=docs.rs" height="20">](https://docs.rs/qlora-paste)
+[<img alt="build status" src="https://img.shields.io/github/actions/workflow/status/kang/qlora-paste/ci.yml?branch=master&style=for-the-badge" height="20">](https://github.com/kang/qlora-paste/actions?query=branch%3Amaster)
+[<img alt="msrv" src="https://img.shields.io/badge/MSRV-1.92-blue?style=for-the-badge" height="20">](https://github.com/kang/qlora-paste)
+[<img alt="maintenance" src="https://img.shields.io/badge/maintenance-actively--maintained-brightgreen?style=for-the-badge" height="20">](https://github.com/kang/qlora-paste)
 
-_(This project is no longer maintained.)_
+**Actively maintained fork of [paste](https://github.com/dtolnay/paste) (originally by David Tolnay).** This fork continues development with modern tooling, security scanning, and active maintenance.
 
 The nightly-only [`concat_idents!`] macro in the Rust standard library is
 notoriously underpowered in that its concatenated identifiers can only refer to
@@ -19,10 +21,10 @@ including using pasted identifiers to define new items.
 
 ```toml
 [dependencies]
-paste = "1.0"
+qlora-paste = "1.0"
 ```
 
-This approach works with any Rust compiler 1.31+.
+This approach works with any Rust compiler 1.92+.
 
 <br>
 
@@ -32,7 +34,7 @@ Within the `paste!` macro, identifiers inside `[<`...`>]` are pasted together to
 form a single identifier.
 
 ```rust
-use paste::paste;
+use qlora_paste::paste;
 
 paste! {
     // Defines a const called `QRST`.
@@ -56,7 +58,7 @@ fields. It demonstrates how you might find it useful to bundle a paste
 invocation inside of a macro\_rules macro.
 
 ```rust
-use paste::paste;
+use qlora_paste::paste;
 
 macro_rules! make_a_struct_and_getters {
     ($name:ident { $($field:ident),* }) => {
@@ -125,7 +127,7 @@ Within the `paste!` macro, arguments to a #\[doc ...\] attribute are implicitly
 concatenated together to form a coherent documentation string.
 
 ```rust
-use paste::paste;
+use qlora_paste::paste;
 
 macro_rules! method_new {
     ($ret:ident) => {
@@ -140,6 +142,12 @@ pub struct Paste {}
 
 method_new!(Paste);  // expands to #[doc = "Create a new `Paste` object"]
 ```
+
+<br>
+
+## Migrating from `paste`
+
+If you're migrating from the original `paste` crate, see the [MIGRATION.md](MIGRATION.md) guide for detailed instructions. The API is 100% compatible, so migration is typically just updating your `Cargo.toml` and import statements.
 
 <br>
 

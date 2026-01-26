@@ -2,6 +2,7 @@ name: CI
 
 on:
   push:
+    branches: [master, main]
   pull_request:
   workflow_dispatch:
   schedule: [cron: "40 1 * * *"]
@@ -11,30 +12,42 @@ permissions:
 
 env:
   RUSTFLAGS: -Dwarnings
+  RUST_BACKTRACE: 1
 
 jobs:
-  pre_ci:
-    uses: dtolnay/.github/.github/workflows/pre_ci.yml@master
-
   test:
     name: Rust ${{matrix.rust}}
-    needs: pre_ci
-    if: needs.pre_ci.outputs.continue
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        rust: [nightly, beta, stable, 1.56.0]
+        rust: [nightly, beta, stable, 1.92.0]
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{matrix.rust}}
+          components: rustfmt, clippy
       - name: Enable type layout randomization
         run: echo RUSTFLAGS=${RUSTFLAGS}\ -Zrandomize-layout >> $GITHUB_ENV
         if: matrix.rust == 'nightly'
-      - run: cargo test
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+      - name: Cache cargo index
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/git
+          key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
+      - name: Cache cargo build
+        uses: actions/cache@v4
+        with:
+          path: target
+          key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
+      - run: cargo test --all-features
       - uses: actions/upload-artifact@v4
         if: matrix.rust == 'nightly' && always()
         with:
@@ -42,20 +55,38 @@ jobs:
           path: Cargo.lock
 
   msrv:
-    name: Rust 1.31.0
-    needs: pre_ci
-    if: needs.pre_ci.outputs.continue
+    name: Rust MSRV (1.92.0)
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@1.31.0
-      - run: cargo check
+      - uses: dtolnay/rust-toolchain@1.92.0
+      - run: cargo check --all-features
+
+  fmt:
+    name: Format Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - run: cargo fmt --all -- --check
+
+  clippy:
+    name: Clippy
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - run: cargo clippy --all-targets --all-features -- -D warnings
 
   doc:
     name: Documentation
-    needs: pre_ci
-    if: needs.pre_ci.outputs.continue
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
@@ -63,23 +94,32 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@nightly
-      - uses: dtolnay/install@cargo-docs-rs
-      - run: cargo docs-rs
+      - run: cargo doc --no-deps --all-features
 
-  clippy:
-    name: Clippy
+  security_audit:
+    name: Security Audit
     runs-on: ubuntu-latest
-    if: github.event_name != 'pull_request'
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@clippy
-      - run: cargo clippy --tests -- -Dclippy::all -Dclippy::pedantic
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Install cargo-audit
+        run: cargo install cargo-audit --locked
+      - run: cargo audit
+
+  cargo_deny:
+    name: Cargo Deny
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Install cargo-deny
+        run: cargo install cargo-deny --locked
+      - run: cargo deny check
 
   miri:
     name: Miri
-    needs: pre_ci
-    if: needs.pre_ci.outputs.continue
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -89,14 +129,3 @@ jobs:
       - run: cargo miri test
         env:
           MIRIFLAGS: -Zmiri-strict-provenance
-
-  outdated:
-    name: Outdated
-    runs-on: ubuntu-latest
-    if: github.event_name != 'pull_request'
-    timeout-minutes: 45
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: dtolnay/install@cargo-outdated
-      - run: cargo outdated --workspace --exit-code 1

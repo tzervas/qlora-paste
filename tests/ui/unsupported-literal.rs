@@ -1,4 +1,4 @@
-use paste::paste;
+use qlora_paste::paste;
 
 paste! {
     fn [<x 1e+100 z>]() {}

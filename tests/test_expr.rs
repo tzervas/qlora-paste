@@ -1,6 +1,6 @@
 #![allow(clippy::let_underscore_untyped)]
 
-use paste::paste;
+use qlora_paste::paste;
 
 #[test]
 fn test_shared_hygiene() {
@@ -107,9 +107,10 @@ fn test_env_literal() {
 #[test]
 fn test_env_present() {
     paste! {
+        #[allow(non_camel_case_types)]
         struct [<Lib env!("CARGO_PKG_NAME")>];
 
-        let _ = Libpaste;
+        let _ = Libqlora_paste;
     }
 }
 
@@ -162,27 +163,28 @@ fn test_empty() {
 #[test]
 fn test_env_to_lower() {
     paste! {
+        #[allow(non_camel_case_types)]
         struct [<Lib env!("CARGO_PKG_NAME"):lower>];
 
-        let _ = Libpaste;
+        let _ = Libqlora_paste;
     }
 }
 
 #[test]
 fn test_env_to_upper() {
     paste! {
-        const [<LIB env!("CARGO_PKG_NAME"):upper>]: &str = "libpaste";
+        const [<LIB env!("CARGO_PKG_NAME"):upper>]: &str = "libqlora-paste";
 
-        let _ = LIBPASTE;
+        let _ = LIBQLORA_PASTE;
     }
 }
 
 #[test]
 fn test_env_to_snake() {
     paste! {
-        const [<LIB env!("CARGO_PKG_NAME"):snake:upper>]: &str = "libpaste";
+        const [<LIB env!("CARGO_PKG_NAME"):snake:upper>]: &str = "libqlora-paste";
 
-        let _ = LIBPASTE;
+        let _ = LIBQLORA_PASTE;
     }
 }
 
@@ -190,9 +192,9 @@ fn test_env_to_snake() {
 fn test_env_to_camel() {
     paste! {
         #[allow(non_upper_case_globals)]
-        const [<LIB env!("CARGO_PKG_NAME"):camel>]: &str = "libpaste";
+        const [<LIB env!("CARGO_PKG_NAME"):camel>]: &str = "libqlora-paste";
 
-        let _ = LIBPaste;
+        let _ = LIBQloraPaste;
     }
 }
 
@@ -202,7 +204,7 @@ mod test_x86_feature_literal {
     #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
     macro_rules! my_is_x86_feature_detected {
         ($feat:literal) => {
-            use paste::paste;
+            use qlora_paste::paste;
 
             paste! {
                 #[test]
@@ -229,7 +231,7 @@ mod test_x86_feature_literal {
 mod test_local_setter {
     // https://github.com/dtolnay/paste/issues/7
 
-    use paste::paste;
+    use qlora_paste::paste;
 
     #[derive(Default)]
     struct Test {

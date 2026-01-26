@@ -1,6 +1,6 @@
 #![allow(clippy::let_underscore_untyped)]
 
-use paste::paste;
+use qlora_paste::paste;
 
 #[test]
 fn test_paste_doc() {

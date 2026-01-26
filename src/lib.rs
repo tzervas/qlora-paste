@@ -1,8 +1,12 @@
-//! [![github]](https://github.com/dtolnay/paste)&ensp;[![crates-io]](https://crates.io/crates/paste)&ensp;[![docs-rs]](https://docs.rs/paste)
+//! [![github]](https://github.com/kang/qlora-paste)&ensp;[![crates-io]](https://crates.io/crates/qlora-paste)&ensp;[![docs-rs]](https://docs.rs/qlora-paste)
 //!
 //! [github]: https://img.shields.io/badge/github-8da0cb?style=for-the-badge&labelColor=555555&logo=github
 //! [crates-io]: https://img.shields.io/badge/crates.io-fc8d62?style=for-the-badge&labelColor=555555&logo=rust
 //! [docs-rs]: https://img.shields.io/badge/docs.rs-66c2a5?style=for-the-badge&labelColor=555555&logo=docs.rs
+//!
+//! <br>
+//!
+//! **Actively maintained fork of [paste](https://github.com/dtolnay/paste) (originally by David Tolnay).**
 //!
 //! <br>
 //!
@@ -15,7 +19,7 @@
 //! This crate provides a flexible way to paste together identifiers in a macro,
 //! including using pasted identifiers to define new items.
 //!
-//! This approach works with any Rust compiler 1.31+.
+//! This approach works with any Rust compiler 1.92+.
 //!
 //! <br>
 //!
@@ -25,7 +29,7 @@
 //! together to form a single identifier.
 //!
 //! ```
-//! use paste::paste;
+//! use qlora_paste::paste;
 //!
 //! paste! {
 //!     // Defines a const called `QRST`.
@@ -49,7 +53,7 @@
 //! paste invocation inside of a macro\_rules macro.
 //!
 //! ```
-//! use paste::paste;
+//! use qlora_paste::paste;
 //!
 //! macro_rules! make_a_struct_and_getters {
 //!     ($name:ident { $($field:ident),* }) => {
@@ -121,7 +125,7 @@
 //! implicitly concatenated together to form a coherent documentation string.
 //!
 //! ```
-//! use paste::paste;
+//! use qlora_paste::paste;
 //!
 //! macro_rules! method_new {
 //!     ($ret:ident) => {
@@ -137,7 +141,7 @@
 //! method_new!(Paste);  // expands to #[doc = "Create a new `Paste` object"]
 //! ```
 
-#![doc(html_root_url = "https://docs.rs/paste/1.0.15")]
+#![doc(html_root_url = "https://docs.rs/qlora-paste/1.0.16")]
 #![allow(
     clippy::derive_partial_eq_without_eq,
     clippy::doc_markdown,
