@@ -1,3 +1,8 @@
+<!-- FLEET-BADGES:BEGIN -->
+[![CI](https://github.com/tzervas/qlora-paste/actions/workflows/fleet-ci.yml/badge.svg?branch=master)](https://github.com/tzervas/qlora-paste/actions/workflows/fleet-ci.yml?query=branch%3Amaster)
+[![Security](https://github.com/tzervas/qlora-paste/actions/workflows/fleet-security.yml/badge.svg?branch=master)](https://github.com/tzervas/qlora-paste/actions/workflows/fleet-security.yml?query=branch%3Amaster)
+<!-- FLEET-BADGES:END -->
+
 Macros for all your token pasting needs
 =======================================
 
