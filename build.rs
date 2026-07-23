@@ -5,9 +5,8 @@ use std::str;
 fn main() {
     println!("cargo:rerun-if-changed=build.rs");
 
-    let version = match rustc_version() {
-        Some(version) => version,
-        None => return,
+    let Some(version) = rustc_version() else {
+        return;
     };
 
     if version.minor >= 80 {

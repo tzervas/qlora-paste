@@ -1,0 +1,131 @@
+# Upstream paste CI matrix, adapted ONLY for self-hosted runner labels.
+# Source of truth: https://github.com/dtolnay/paste/blob/master/.github/workflows/ci.yml
+# (archived read-only 2024-10-06). Changes vs upstream:
+#   - runs-on: [self-hosted, linux, x64, podman]  (was ubuntu-latest)
+#   - pre_ci reusable workflow from dtolnay/.github is inlined as a no-op gate
+#     (external reusable workflow may be unavailable / archive-coupled)
+#   - MSRV job uses 1.85.0 (this fork's verified MSRV) instead of 1.31.0
+#   - test matrix includes 1.85.0 instead of 1.56.0
+#   - checkout action kept at v4 to match upstream file; runners must support it
+# Bar: "upstream's own CI would have accepted this" for the equivalent jobs.
+
+name: Upstream CI (self-hosted)
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+  schedule: [cron: "40 1 * * *"]
+
+permissions:
+  contents: read
+
+env:
+  RUSTFLAGS: -Dwarnings
+
+jobs:
+  pre_ci:
+    name: Pre-CI gate
+    runs-on: [self-hosted, linux, x64, podman]
+    timeout-minutes: 10
+    outputs:
+      continue: ${{ steps.gate.outputs.continue }}
+    steps:
+      - id: gate
+        run: echo "continue=true" >> "$GITHUB_OUTPUT"
+
+  test:
+    name: Rust ${{matrix.rust}}
+    needs: pre_ci
+    if: needs.pre_ci.outputs.continue
+    runs-on: [self-hosted, linux, x64, podman]
+    strategy:
+      fail-fast: false
+      matrix:
+        rust: [nightly, beta, stable, 1.85.0]
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{matrix.rust}}
+      - name: Enable type layout randomization
+        run: echo RUSTFLAGS=${RUSTFLAGS}\ -Zrandomize-layout >> $GITHUB_ENV
+        if: matrix.rust == 'nightly'
+      - run: cargo test
+      - uses: actions/upload-artifact@v4
+        if: matrix.rust == 'nightly' && always()
+        with:
+          name: Cargo.lock
+          path: Cargo.lock
+
+  msrv:
+    name: Rust 1.85.0
+    needs: pre_ci
+    if: needs.pre_ci.outputs.continue
+    runs-on: [self-hosted, linux, x64, podman]
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.85.0
+      - run: cargo check
+
+  doc:
+    name: Documentation
+    needs: pre_ci
+    if: needs.pre_ci.outputs.continue
+    runs-on: [self-hosted, linux, x64, podman]
+    timeout-minutes: 45
+    env:
+      RUSTDOCFLAGS: -Dwarnings
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@nightly
+      - uses: dtolnay/install@cargo-docs-rs
+      - run: cargo docs-rs
+
+  clippy:
+    name: Clippy
+    runs-on: [self-hosted, linux, x64, podman]
+    if: github.event_name != 'pull_request'
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@clippy
+      - run: cargo clippy --tests -- -Dclippy::all -Dclippy::pedantic
+
+  miri:
+    name: Miri
+    needs: pre_ci
+    if: needs.pre_ci.outputs.continue
+    runs-on: [self-hosted, linux, x64, podman]
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@miri
+      - run: cargo miri setup
+      - run: cargo miri test
+        env:
+          MIRIFLAGS: -Zmiri-strict-provenance
+
+  outdated:
+    name: Outdated
+    runs-on: [self-hosted, linux, x64, podman]
+    if: github.event_name != 'pull_request'
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/install@cargo-outdated
+      - run: cargo outdated --workspace --exit-code 1
+
+  fmt:
+    name: Format
+    runs-on: [self-hosted, linux, x64, podman]
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - run: cargo fmt --all -- --check

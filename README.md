@@ -6,14 +6,27 @@
 Macros for all your token pasting needs
 =======================================
 
-[<img alt="github" src="https://img.shields.io/badge/github-kang/qlora--paste-8da0cb?style=for-the-badge&labelColor=555555&logo=github" height="20">](https://github.com/kang/qlora-paste)
+[<img alt="github" src="https://img.shields.io/badge/github-tzervas/qlora--paste-8da0cb?style=for-the-badge&labelColor=555555&logo=github" height="20">](https://github.com/tzervas/qlora-paste)
 [<img alt="crates.io" src="https://img.shields.io/crates/v/qlora-paste.svg?style=for-the-badge&color=fc8d62&logo=rust" height="20">](https://crates.io/crates/qlora-paste)
 [<img alt="docs.rs" src="https://img.shields.io/badge/docs.rs-qlora--paste-66c2a5?style=for-the-badge&labelColor=555555&logo=docs.rs" height="20">](https://docs.rs/qlora-paste)
-[<img alt="build status" src="https://img.shields.io/github/actions/workflow/status/kang/qlora-paste/ci.yml?branch=master&style=for-the-badge" height="20">](https://github.com/kang/qlora-paste/actions?query=branch%3Amaster)
-[<img alt="msrv" src="https://img.shields.io/badge/MSRV-1.92-blue?style=for-the-badge" height="20">](https://github.com/kang/qlora-paste)
-[<img alt="maintenance" src="https://img.shields.io/badge/maintenance-actively--maintained-brightgreen?style=for-the-badge" height="20">](https://github.com/kang/qlora-paste)
+[<img alt="build status" src="https://img.shields.io/github/actions/workflow/status/tzervas/qlora-paste/ci.yml?branch=master&style=for-the-badge" height="20">](https://github.com/tzervas/qlora-paste/actions?query=branch%3Amaster)
+[<img alt="msrv" src="https://img.shields.io/badge/MSRV-1.85-blue?style=for-the-badge" height="20">](https://github.com/tzervas/qlora-paste)
+[<img alt="maintenance" src="https://img.shields.io/badge/maintenance-actively--maintained-brightgreen?style=for-the-badge" height="20">](https://github.com/tzervas/qlora-paste)
 
-**Actively maintained fork of [paste](https://github.com/dtolnay/paste) (originally by David Tolnay).** This fork continues development with modern tooling, security scanning, and active maintenance.
+> **Maintenance notice.** This is an actively maintained fork of
+> [dtolnay/paste](https://github.com/dtolnay/paste) (last upstream release
+> **1.0.15**, repository archived read-only on **2024-10-06**). Upstream is
+> flagged by [RUSTSEC-2024-0436](https://rustsec.org/advisories/RUSTSEC-2024-0436.html)
+> as **unmaintained** (INFO advisory — not a memory-safety CVE). Original
+> implementation and copyright remain David Tolnay's; this fork exists so
+> dependents (e.g. ratatui and other crates that pull `paste` transitively)
+> can clear cargo-audit/cargo-deny findings via a drop-in maintained package.
+>
+> **Provenance:** forked from `dtolnay/paste` @ `1.0.15` / commit history
+> preserved. License: dual **MIT OR Apache-2.0**, same SPDX and
+> `LICENSE-MIT` / `LICENSE-APACHE` files as upstream. Package name on
+> crates.io is `qlora-paste` (the `paste` name remains owned by upstream);
+> the public macro API (`paste!`) and behavior match 1.0.15.
 
 The nightly-only [`concat_idents!`] macro in the Rust standard library is
 notoriously underpowered in that its concatenated identifiers can only refer to
@@ -29,7 +42,9 @@ including using pasted identifiers to define new items.
 qlora-paste = "1.0"
 ```
 
-This approach works with any Rust compiler 1.92+.
+This approach works with any Rust compiler 1.85+ (verified). Upstream
+`paste` 1.0.15 claimed 1.31+; this fork's declared MSRV is the oldest
+toolchain currently verified in CI.
 
 <br>
 
@@ -126,10 +141,12 @@ The precise Unicode conversions are as defined by [`str::to_lowercase`] and
 
 <br>
 
-## Pasting documentation strings
+## Pasting string literals into attributes
 
-Within the `paste!` macro, arguments to a #\[doc ...\] attribute are implicitly
-concatenated together to form a coherent documentation string.
+Within the `paste!` macro, if there are two or more arguments to an attribute
+they are implicitly concatenated together to form a string literal. This covers
+`#[doc = ...]` and other attributes such as `#[cfg(feature = ...)]`
+(behavior from upstream #57; docs clarified per proposed #105).
 
 ```rust
 use qlora_paste::paste;
@@ -138,6 +155,7 @@ macro_rules! method_new {
     ($ret:ident) => {
         paste! {
             #[doc = "Create a new `" $ret "` object."]
+            #[cfg(feature = "" $ret:snake)]
             pub fn new() -> $ret { todo!() }
         }
     };
@@ -145,7 +163,10 @@ macro_rules! method_new {
 
 pub struct Paste {}
 
-method_new!(Paste);  // expands to #[doc = "Create a new `Paste` object"]
+// expands to:
+// #[doc = "Create a new `Paste` object."]
+// #[cfg(feature = "paste")]
+method_new!(Paste);
 ```
 
 <br>
