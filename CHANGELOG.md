@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.20] - 2026-07-23
+
 ### Fixed
 
 - Restored declared MSRV to the oldest toolchain **verified** in this environment
