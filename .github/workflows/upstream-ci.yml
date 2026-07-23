@@ -126,12 +126,18 @@ jobs:
       # Zero-dependency crate: nothing can be out of date. cargo-outdated
       # (and its dtolnay attestation binary) are unavailable on the runner,
       # so assert the zero-dep invariant with the built-in resolver instead.
-      - name: No dependencies to be outdated (zero-dep invariant)
+      # cargo-outdated (+ its dtolnay attestation binary) is unavailable on the
+      # self-hosted runner. Use the built-in resolver: report available updates
+      # without failing, and assert zero RUNTIME deps (dev-deps like trybuild are
+      # expected and excluded).
+      - name: Dependency freshness (tool-free)
         run: |
           set -euo pipefail
-          n=$(cargo metadata --format-version 1 --no-deps | python3 -c "import sys,json;m=json.load(sys.stdin);print(sum(len(p['dependencies']) for p in m['packages']))")
-          echo "declared dependencies: $n"
-          test "$n" -eq 0 || { echo "expected zero deps; got $n" >&2; exit 1; }
+          cargo update --locked --dry-run || true
+          rt=$(cargo metadata --format-version 1 --no-deps \
+            | python3 -c "import sys,json;m=json.load(sys.stdin);print(sum(1 for p in m['packages'] for d in p['dependencies'] if (d.get('kind') in (None,'normal'))))")
+          echo "runtime dependencies: $rt"
+          test "$rt" -eq 0 || { echo "expected zero runtime deps; got $rt" >&2; exit 1; }
   fmt:
     name: Format
     runs-on: [self-hosted, linux, x64, podman]
