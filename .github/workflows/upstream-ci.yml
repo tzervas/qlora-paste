@@ -81,7 +81,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@nightly
-      - uses: dtolnay/install@cargo-docs-rs
+      # Self-hosted: dtolnay/install binary is not on the runner (exit 127).
+      # Install cargo-docs-rs so package.metadata.docs.rs is honored.
+      - name: Install cargo-docs-rs
+        run: |
+          set -euo pipefail
+          if ! command -v cargo-docs-rs >/dev/null 2>&1; then
+            cargo install cargo-docs-rs --locked
+          fi
+          cargo docs-rs --help >/dev/null
       - run: cargo docs-rs
 
   clippy:
@@ -116,7 +124,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
-      - uses: dtolnay/install@cargo-outdated
+      # Self-hosted: dtolnay/install@cargo-outdated uses gh attestation verify + a
+      # prebuilt binary that is not on this runner (exit 127). Install via cargo.
+      - name: Install cargo-outdated
+        run: |
+          set -euo pipefail
+          if ! command -v cargo-outdated >/dev/null 2>&1; then
+            cargo install cargo-outdated --locked
+          fi
+          cargo outdated --version
       - run: cargo outdated --workspace --exit-code 1
 
   fmt:
