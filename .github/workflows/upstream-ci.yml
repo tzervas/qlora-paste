@@ -39,6 +39,10 @@ jobs:
     runs-on: [self-hosted, linux, x64, podman]
     strategy:
       fail-fast: false
+      # Cap concurrent rungs. The self-hosted podman fleet is memory-capped; running every
+      # rung at once meant multiple simultaneous `rustup toolchain install` + build processes,
+      # which the OOM killer terminated mid-install (exit 137). Serialize into small batches.
+      max-parallel: 2
       matrix:
         rust: [nightly, beta, stable, 1.85.0]
     timeout-minutes: 45
@@ -65,6 +69,9 @@ jobs:
     timeout-minutes: 45
     strategy:
       fail-fast: false
+      # Cap concurrent rungs — see the OOM note on the test matrix above. Seven simultaneous
+      # toolchain installs + lib builds on the memory-capped fleet OOM-killed rustup (exit 137).
+      max-parallel: 2
       matrix:
         # Full compat spread: declared MSRV 1.31 (upstream paste's floor) up through
         # current. Lib-only `cargo build` — proves the crate COMPILES on each toolchain
