@@ -1,0 +1,97 @@
+name: security-deep
+# Maximal vulnerability scanning, focused on the trunk so anything landing on main is
+# swept by every scanner we have. Runs on push to main/master, on PRs into it, on a
+# weekly schedule (to catch NEWLY-DISCLOSED CVEs against unchanged code — the reason a
+# security scan is scheduled even though functional CI is not), and on demand.
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  schedule:
+    - cron: "27 6 * * 1"   # weekly, Monday 06:27 UTC (off-peak minute)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write   # for CodeQL / SARIF upload
+
+jobs:
+  # --- Rust advisory DB (RUSTSEC) ------------------------------------------
+  cargo-audit:
+    name: cargo-audit (RUSTSEC)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo install cargo-audit --locked
+      - run: cargo audit --deny warnings
+
+  # --- broadest cross-ecosystem vuln DB ------------------------------------
+  osv-scanner:
+    name: OSV-Scanner
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: google/osv-scanner-action@v1.9.1
+        with:
+          scan-args: |-
+            --recursive
+            --lockfile=./Cargo.lock
+        continue-on-error: true
+
+  # --- filesystem CVE / secret / misconfig / license -----------------------
+  trivy:
+    name: Trivy (vuln+secret+config+license)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln,secret,misconfig,license
+          severity: CRITICAL,HIGH,MEDIUM,LOW
+          exit-code: "1"
+          ignore-unfixed: false
+
+  # --- unsafe-code surface (matters for a proc-macro) ----------------------
+  cargo-geiger:
+    name: cargo-geiger (unsafe audit)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo install cargo-geiger --locked || true
+      - run: cargo geiger --all-features || true   # informational; forbids-unsafe is enforced in code
+
+  # --- static analysis (SAST) for the Rust source -------------------------
+  codeql:
+    name: CodeQL (Rust SAST)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: rust
+      - uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:rust"
+
+  # --- secrets, deep history ----------------------------------------------
+  gitleaks-deep:
+    name: gitleaks (full history)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
