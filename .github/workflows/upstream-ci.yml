@@ -76,18 +76,11 @@ jobs:
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.rust }}
-      # Validate the LIBRARY's MSRV: strip dev-dependencies (cargo-husky etc.) whose
-      # modern manifests old cargo cannot even resolve. Consumers never get dev-deps,
-      # so this is the correct MSRV surface.
+      # Validate the LIBRARY's MSRV: strip dev/build-deps (cargo-husky etc.) whose
+      # modern manifests old cargo cannot resolve. Consumers never get dev-deps.
       - name: Strip dev-dependencies for MSRV lib check
         run: |
-          python3 - <<'EOF'
-          import re
-          s=open("Cargo.toml").read()
-          s=re.sub(r'\n\[dev-dependencies\][^\[]*', '\n', s)
-          s=re.sub(r'\n\[build-dependencies\][^\[]*', '\n', s)
-          open("Cargo.toml","w").write(s)
-          EOF
+          python3 ci/msrv-strip-devdeps.py Cargo.toml
           rm -f Cargo.lock
       - name: Build (lib only) on ${{ matrix.rust }}
         run: cargo build --lib --verbose
