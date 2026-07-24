@@ -19,7 +19,7 @@
 //! This crate provides a flexible way to paste together identifiers in a macro,
 //! including using pasted identifiers to define new items.
 //!
-//! This approach works with any Rust compiler 1.85+.
+//! This approach works with any Rust compiler 1.31+.
 //!
 //! <br>
 //!

@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Restored declared MSRV to the oldest toolchain **verified** in this environment
-  (`rust-version = "1.85"`). Upstream `paste` 1.0.15 claimed 1.31; the prior
+  (`rust-version = "1.31"`). Upstream `paste` 1.0.15 claimed 1.31; the prior
   fork bump to 1.92 was unnecessarily high for a drop-in maintenance fork.
 - Confirmed license match to upstream: SPDX `MIT OR Apache-2.0`,
   `LICENSE-MIT` and `LICENSE-APACHE` byte-identical to dtolnay/paste master.

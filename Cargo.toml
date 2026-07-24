@@ -12,7 +12,7 @@ edition = "2018"
 keywords = ["macros"]
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/tzervas/qlora-paste"
-rust-version = "1.85"
+rust-version = "1.31"
 
 [lib]
 proc-macro = true

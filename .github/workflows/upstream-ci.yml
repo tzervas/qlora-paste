@@ -59,16 +59,25 @@ jobs:
           path: Cargo.lock
 
   msrv:
-    name: Rust 1.85.0
+    name: Build @ Rust ${{ matrix.rust }}
     needs: pre_ci
     if: needs.pre_ci.outputs.continue
     runs-on: [self-hosted, linux, x64, podman]
     timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        # Full compat spread: declared MSRV 1.31 (upstream paste's floor) up through
+        # current. Lib-only `cargo build` — proves the crate COMPILES on each toolchain
+        # without pulling dev-deps (trybuild/rustversion) that don't support old Rust.
+        rust: ["1.31.0", "1.45.2", "1.56.1", "1.65.0", "1.74.1", "1.85.0", "1.96.0"]
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@1.85.0
-      - run: cargo check
-
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.rust }}
+      - name: Build (lib only) on ${{ matrix.rust }}
+        run: cargo build --verbose
   doc:
     name: Documentation
     needs: pre_ci
