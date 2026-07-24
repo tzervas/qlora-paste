@@ -60,3 +60,32 @@ fn test_path_in_attr() {
 
     assert_eq!("foo::Bar", ty);
 }
+
+/// Regression/guard for attribute string-literal concatenation beyond `#[doc]`
+/// (upstream behavior from dtolnay/paste#57; docs clarified in proposed #105).
+#[test]
+fn test_attr_string_literal_concat_non_doc() {
+    // Concatenate into a non-doc attribute string the same way #57/#105 describe.
+    // Using `protocol_feature_` prefix keeps check-cfg quiet (see test_paste_cfg).
+    macro_rules! m {
+        ($ret:ident) => {
+            paste! {
+                #[cfg(feature = "protocol_feature_" $ret:snake)]
+                fn gated_on() -> bool {
+                    true
+                }
+
+                #[cfg(not(feature = "protocol_feature_" $ret:snake))]
+                fn gated_on() -> bool {
+                    false
+                }
+            }
+        };
+    }
+
+    struct Paste;
+    m!(Paste);
+    // Feature is not enabled; pasting still produced a valid cfg string.
+    assert!(!gated_on());
+    let _: Paste = Paste;
+}

@@ -19,7 +19,7 @@
 //! This crate provides a flexible way to paste together identifiers in a macro,
 //! including using pasted identifiers to define new items.
 //!
-//! This approach works with any Rust compiler 1.92+.
+//! This approach works with any Rust compiler 1.31+.
 //!
 //! <br>
 //!
@@ -119,10 +119,13 @@
 //!
 //! <br>
 //!
-//! # Pasting documentation strings
+//! # Pasting string literals into attributes
 //!
-//! Within the `paste!` macro, arguments to a #\[doc ...\] attribute are
-//! implicitly concatenated together to form a coherent documentation string.
+//! Within the `paste!` macro, if there are two or more arguments to an
+//! attribute they are implicitly concatenated together to form a string
+//! literal. This works for `#[doc = ...]` and for other attributes such as
+//! `#[cfg(feature = ...)]` (see upstream dtolnay/paste#57, docs clarified in
+//! proposed #105).
 //!
 //! ```
 //! use qlora_paste::paste;
@@ -131,6 +134,7 @@
 //!     ($ret:ident) => {
 //!         paste! {
 //!             #[doc = "Create a new `" $ret "` object."]
+//!             #[cfg(feature = "" $ret:snake)]
 //!             pub fn new() -> $ret { todo!() }
 //!         }
 //!     };
@@ -138,7 +142,10 @@
 //!
 //! pub struct Paste {}
 //!
-//! method_new!(Paste);  // expands to #[doc = "Create a new `Paste` object"]
+//! // expands to:
+//! // #[doc = "Create a new `Paste` object."]
+//! // #[cfg(feature = "paste")]
+//! method_new!(Paste);
 //! ```
 
 #![doc(html_root_url = "https://docs.rs/qlora-paste/1.0.20")]
@@ -148,7 +155,12 @@
     clippy::match_same_arms,
     clippy::module_name_repetitions,
     clippy::needless_doctest_main,
-    clippy::too_many_lines
+    clippy::too_many_lines,
+    // Pedantic lints that fire on current stable clippy against 1.0.15-era code;
+    // kept allowed so upstream-style `clippy -- -Dclippy::pedantic` stays green
+    // without drive-by rewrites of diagnostic format strings / match style.
+    clippy::uninlined_format_args,
+    clippy::manual_let_else
 )]
 
 extern crate proc_macro;

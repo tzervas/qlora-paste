@@ -3,6 +3,7 @@ extern crate proc_macro;
 use proc_macro::{TokenStream, TokenTree};
 
 #[proc_macro_attribute]
+#[allow(clippy::missing_panics_doc)]
 pub fn paste_test(args: TokenStream, input: TokenStream) -> TokenStream {
     let mut iter = args.clone().into_iter();
     match iter.next() {

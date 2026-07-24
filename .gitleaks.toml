@@ -34,15 +34,12 @@ id = "env-credential"
 description = "Hardcoded credential in env or config"
 regex = '''(?i)(password|passwd|pwd|secret)\s*[:=]\s*["'][^"']{8,}["']'''
 tags = ["credential"]
-paths = [
-    '''\.rs$''',
-    '''\.toml$''',
-    '''\.yaml$''',
-    '''\.yml$''',
-]
+# Rule-level path is a single regex string (not a paths array)
+path = '''\.(rs|toml|ya?ml)$'''
 
-# Allowlist for test files
-[[rules.allowlist]]
+# Per-rule allowlist must be a map ([rules.allowlist]), not an array table
+# ([[rules.allowlist]]) — gitleaks decode expects Allowlist: map, not slice
+[rules.allowlist]
 paths = [
     '''tests/''',
     '''benches/''',

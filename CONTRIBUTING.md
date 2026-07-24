@@ -6,7 +6,7 @@ Thank you for your interest in contributing to qlora-paste!
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/kang/qlora-paste.git
+   git clone https://github.com/tzervas/qlora-paste.git
    cd qlora-paste
    ```
 
