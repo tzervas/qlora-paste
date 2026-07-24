@@ -42,6 +42,23 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         if: steps.ver.outputs.release_needed == 'true'
 
+      - name: Sync hardcoded doc versions to release version
+        if: steps.ver.outputs.release_needed == 'true'
+        env:
+          V: ${{ steps.ver.outputs.version }}
+        run: |
+          set -euo pipefail
+          # Keep src html_root_url in lock-step with the crate version so it never
+          # drifts. (README badges are dynamic shields.io — no sync needed there.)
+          sed -i -E "s|(html_root_url = \"https://docs.rs/qlora-paste/)[0-9]+\.[0-9]+\.[0-9]+\"|\1$V\"|" src/lib.rs || true
+          if ! git diff --quiet; then
+            git config user.name tzervas
+            git config user.email albedo.black.1@gmail.com
+            git add -A
+            git commit -m "docs: sync html_root_url to v$V [skip ci]"
+            git push origin HEAD:${GITHUB_REF_NAME}
+          fi
+
       - name: Gate — test / clippy / fmt
         if: steps.ver.outputs.release_needed == 'true'
         run: |
