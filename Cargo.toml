@@ -1,6 +1,6 @@
 [package]
 name = "qlora-paste"
-version = "1.0.20"
+version = "1.0.21"
 authors = [
     "David Tolnay <dtolnay@gmail.com>",
     "Tyler Zervas <tz-dev@vectorweight.com>"

@@ -1,0 +1,77 @@
+name: security-deep
+# Maximal vulnerability sweep on trunk. ALL native invocations — no Docker-based
+# actions (the podman self-hosted fleet has no `docker`). Runs on push/PR to main,
+# weekly (catches newly-disclosed CVEs against unchanged code), and on demand.
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  schedule:
+    - cron: "27 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  cargo-audit:
+    name: cargo-audit (RUSTSEC)
+    runs-on: [self-hosted, linux, x64, podman]
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: command -v cargo-audit >/dev/null 2>&1 || cargo install cargo-audit --locked
+      - run: cargo audit --deny warnings
+
+  cargo-geiger:
+    name: cargo-geiger (unsafe audit)
+    runs-on: [self-hosted, linux, x64, podman]
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: command -v cargo-geiger >/dev/null 2>&1 || cargo install cargo-geiger --locked || true
+      - run: cargo geiger --all-features || true   # informational
+
+  trivy:
+    name: Trivy (vuln+secret+misconfig+license)
+    runs-on: [self-hosted, linux, x64, podman]
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Ensure trivy
+        run: |
+          set -euo pipefail
+          if ! command -v trivy >/dev/null 2>&1; then
+            curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b "$HOME/.local/bin"
+            echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          fi
+      - run: trivy fs --scanners vuln,secret,misconfig,license --severity CRITICAL,HIGH,MEDIUM,LOW --exit-code 1 --no-progress .
+
+  osv-scanner:
+    name: OSV-Scanner
+    runs-on: [self-hosted, linux, x64, podman]
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Ensure osv-scanner
+        run: |
+          set -euo pipefail
+          if ! command -v osv-scanner >/dev/null 2>&1; then
+            curl -sfL -o "$HOME/.local/bin/osv-scanner" https://github.com/google/osv-scanner/releases/latest/download/osv-scanner_linux_amd64
+            chmod +x "$HOME/.local/bin/osv-scanner"
+            echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          fi
+      - run: osv-scanner scan --lockfile=Cargo.lock . || true   # informational (broad DB)
+
+  gitleaks:
+    name: gitleaks (full history)
+    runs-on: [self-hosted, linux, x64, podman]
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - run: gitleaks detect --source . --redact --no-banner
