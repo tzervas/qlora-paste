@@ -42,6 +42,10 @@ jobs:
     runs-on: [self-hosted, linux, x64, podman]
     steps:
       - uses: actions/checkout@v4
+      # Pin a modern toolchain: the runner's ambient cargo can be too old to parse
+      # newer transitive dep editions (e.g. toml_writer 1.1.2 / edition 2024),
+      # which made this job non-deterministically fail depending on the runner.
+      - uses: dtolnay/rust-toolchain@stable
       - name: cargo check
         run: cargo check --workspace --all-targets
       - name: cargo test
