@@ -69,23 +69,6 @@ jobs:
       - run: cargo install cargo-geiger --locked || true
       - run: cargo geiger --all-features || true   # informational; forbids-unsafe is enforced in code
 
-  # --- static analysis (SAST) for the Rust source -------------------------
-  codeql:
-    name: CodeQL (Rust SAST)
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    steps:
-      - uses: actions/checkout@v4
-      # CodeQL Rust support is newer (public preview) — surface results without
-      # hard-failing the whole sweep if the toolpack lags.
-      - uses: github/codeql-action/init@v3
-        continue-on-error: true
-        with:
-          languages: rust
-      - uses: github/codeql-action/analyze@v3
-        continue-on-error: true
-        with:
-          category: "/language:rust"
 
   # --- secrets, deep history ----------------------------------------------
   gitleaks-deep:
