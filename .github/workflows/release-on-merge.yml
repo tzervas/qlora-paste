@@ -1,0 +1,94 @@
+name: release-on-merge
+# Automated release + crates.io publish when a version bump lands on the default
+# branch. On push to master/main it checks whether Cargo.toml's version already has
+# a matching `v<version>` tag; if NOT, it gates (test/clippy/fmt), tags, cuts a
+# GitHub release from the CHANGELOG, and publishes to crates.io. Idempotent: an
+# existing tag → no-op. Requires the CARGO_REGISTRY_TOKEN repo secret.
+on:
+  push:
+    branches: [master, main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-on-merge
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: [self-hosted, linux, x64, podman]
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - id: ver
+        name: Read version + decide if release needed
+        run: |
+          set -euo pipefail
+          VERSION=$(grep -m1 '^version = ' Cargo.toml | sed 's/version = "\(.*\)"/\1/')
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          if git rev-parse "v$VERSION" >/dev/null 2>&1; then
+            echo "release_needed=false" >> "$GITHUB_OUTPUT"
+            echo "v$VERSION already tagged — nothing to release."
+          else
+            echo "release_needed=true" >> "$GITHUB_OUTPUT"
+            echo "New version $VERSION — will release."
+          fi
+
+      - uses: dtolnay/rust-toolchain@stable
+        if: steps.ver.outputs.release_needed == 'true'
+
+      - name: Sync hardcoded doc versions to release version
+        if: steps.ver.outputs.release_needed == 'true'
+        env:
+          V: ${{ steps.ver.outputs.version }}
+        run: |
+          set -euo pipefail
+          # Keep src html_root_url in lock-step with the crate version so it never
+          # drifts. (README badges are dynamic shields.io — no sync needed there.)
+          sed -i -E "s|(html_root_url = \"https://docs.rs/qlora-paste/)[0-9]+\.[0-9]+\.[0-9]+\"|\1$V\"|" src/lib.rs || true
+          if ! git diff --quiet; then
+            git config user.name tzervas
+            git config user.email albedo.black.1@gmail.com
+            git add -A
+            git commit -m "docs: sync html_root_url to v$V [skip ci]"
+            git push origin HEAD:${GITHUB_REF_NAME}
+          fi
+
+      - name: Gate — test / clippy / fmt
+        if: steps.ver.outputs.release_needed == 'true'
+        run: |
+          set -euo pipefail
+          cargo test --all-features
+          cargo clippy --all-targets --all-features -- -D warnings
+          cargo fmt --all -- --check
+
+      - name: Tag + GitHub release
+        if: steps.ver.outputs.release_needed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          V: ${{ steps.ver.outputs.version }}
+        run: |
+          set -euo pipefail
+          git tag "v$V"
+          git push origin "v$V"
+          # Notes: the [v$V] CHANGELOG section if present, else a default line.
+          NOTES=$(awk -v v="$V" '$0 ~ "^## \\[" v "\\]"{f=1;next} f&&/^## \[/{exit} f' CHANGELOG.md)
+          [ -z "$NOTES" ] && NOTES="Release v$V"
+          printf '%s\n' "$NOTES" | gh release create "v$V" --title "v$V" --notes-file -
+
+      - name: Publish to crates.io
+        if: steps.ver.outputs.release_needed == 'true'
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "${CARGO_REGISTRY_TOKEN:-}" ]; then
+            echo "CARGO_REGISTRY_TOKEN not set — skipping crates.io publish (tag+release still cut)." >&2
+            exit 0
+          fi
+          cargo publish
