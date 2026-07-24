@@ -148,7 +148,7 @@
 //! method_new!(Paste);
 //! ```
 
-#![doc(html_root_url = "https://docs.rs/qlora-paste/1.0.21")]
+#![doc(html_root_url = "https://docs.rs/qlora-paste/1.0.22")]
 #![allow(
     clippy::derive_partial_eq_without_eq,
     clippy::doc_markdown,
