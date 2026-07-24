@@ -44,7 +44,7 @@ find src -name "*.rs" -exec sed -i 's/use paste::/use qlora_paste::/g' {} +
 
 ## API Compatibility
 
-**qlora-paste v1.0.16 is 100% API-compatible with paste v1.0.15.**
+**qlora-paste is 100% API-compatible with `paste` 1.0.15** (the upstream release it was forked from). The public macro API (`paste!`) and behavior are unchanged; only the crate/module name differs.
 
 All macros, features, and functionality work identically:
 - `paste!` macro
@@ -59,10 +59,12 @@ All macros, features, and functionality work identically:
 - Module path: `paste::` → `qlora_paste::`
 
 ### MSRV (Minimum Supported Rust Version)
-- Old: 1.31.0
-- New: 1.92.0
+- **1.31.0** — the original upstream floor, **restored and CI-validated** across the
+  full range `1.31.0 → 1.96.0` (see the `upstream-ci.yml` build matrix).
 
-If you need to support older Rust versions, continue using the original `paste` crate.
+Unlike a period where the fork's MSRV had drifted up to 1.92, qlora-paste now builds on
+Rust as old as **1.31.0**, so migrating to it does **not** cost you old-toolchain support —
+you get maintenance and security updates while keeping the original MSRV.
 
 ### Active Maintenance
 - qlora-paste includes modern QC tooling
