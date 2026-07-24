@@ -75,8 +75,8 @@ If you need to support older Rust versions, continue using the original `paste` 
 
 - **Original Documentation**: https://docs.rs/paste (functionality is identical)
 - **New Documentation**: https://docs.rs/qlora-paste
-- **Repository**: https://github.com/kang/qlora-paste
-- **Issues**: https://github.com/kang/qlora-paste/issues
+- **Repository**: https://github.com/tzervas/qlora-paste
+- **Issues**: https://github.com/tzervas/qlora-paste/issues
 
 ## Attribution
 

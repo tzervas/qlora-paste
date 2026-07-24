@@ -1,0 +1,25 @@
+name: cargo-deny
+# Supply-chain gate on every change: advisories (RUSTSEC), licenses, banned crates,
+# source registries — per deny.toml. Native invocation (the Docker-based
+# cargo-deny-action fails on the podman self-hosted fleet: 'docker: command not found').
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  cargo-deny:
+    name: cargo deny check
+    runs-on: [self-hosted, linux, x64, podman]
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Install cargo-deny
+        run: command -v cargo-deny >/dev/null 2>&1 || cargo install cargo-deny --locked
+      - name: cargo deny check
+        run: cargo deny check advisories bans licenses sources

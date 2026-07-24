@@ -1,0 +1,33 @@
+name: codeql
+# CodeQL static analysis for Rust. Verified locally (CodeQL 2.26.1, rust-security-and-
+# quality suite → 0 findings), so this is a REAL gate, not advisory. Uploads SARIF to
+# the repo Security tab. build-mode: none — the rust extractor works from source with
+# no compile step (confirmed locally).
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  schedule:
+    - cron: "41 6 * * 1"   # weekly, catches new query-pack rules against unchanged code
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  analyze:
+    name: CodeQL analyze (rust)
+    runs-on: [self-hosted, linux, x64, podman]
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: rust
+          build-mode: none
+          queries: security-and-quality
+      - uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:rust"

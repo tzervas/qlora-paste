@@ -72,9 +72,6 @@ API identical to 1.0.15:
 | #98 | snake preserving `/` | Feature request |
 | #58 | doc alias example | Docs-only example; covered by #105 wording |
 
-Reference-only (not vendored): community successor
-[pastey](https://crates.io/crates/pastey) documents extra modifiers (`replace`,
-`lower_camel`, etc.). Those are **not** reimplemented here — drop-in only.
 
 ## [1.0.19] - 2026-01-26
 
