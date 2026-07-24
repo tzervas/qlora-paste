@@ -84,11 +84,15 @@ jobs:
         run: |
           set -euo pipefail
           # Sparse-index path: first2/next2/name (crates named >=4 chars).
+          # -F: fixed-string match so the version's dots can't act as regex wildcards.
           IDX="https://index.crates.io/ql/or/qlora-paste"
-          if curl -sf -H "User-Agent: qlora-paste-release-ci" "$IDX" | grep -q "\"vers\":\"$V\""; then
+          if curl -sf -H "User-Agent: qlora-paste-release-ci" "$IDX" | grep -Fq "\"vers\":\"$V\""; then
             echo "v$V already on crates.io — skipping publish (idempotent)."
           elif [ -z "${CARGO_REGISTRY_TOKEN:-}" ]; then
-            echo "CARGO_REGISTRY_TOKEN not set — skipping crates.io publish." >&2
+            # Fail loudly: do NOT let the later step tag a version we never published
+            # (that reintroduces the stale-tag trap). Missing secret is a real error.
+            echo "CARGO_REGISTRY_TOKEN not set and v$V not on crates.io — cannot publish." >&2
+            exit 1
           else
             cargo publish
           fi
@@ -111,6 +115,10 @@ jobs:
       # the crate is already published + tagged by the time we get here.
       - name: GitHub release (non-fatal)
         if: steps.ver.outputs.release_needed == 'true'
+        # Explicitly non-fatal: the crate is already published + tagged, so a
+        # release-API failure (or a missing tool like python3) must never fail the
+        # job. Belt-and-suspenders with the in-script error handling below.
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           V: ${{ steps.ver.outputs.version }}
