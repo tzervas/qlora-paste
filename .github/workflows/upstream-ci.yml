@@ -1,7 +1,6 @@
 # Upstream paste CI matrix, adapted ONLY for self-hosted runner labels.
 # Source of truth: https://github.com/dtolnay/paste/blob/master/.github/workflows/ci.yml
 # (archived read-only 2024-10-06). Changes vs upstream:
-#   - runs-on: [self-hosted, linux, x64, podman]  (was ubuntu-latest)
 #   - pre_ci reusable workflow from dtolnay/.github is inlined as a no-op gate
 #     (external reusable workflow may be unavailable / archive-coupled)
 #   - MSRV job uses 1.85.0 (this fork's verified MSRV) instead of 1.31.0

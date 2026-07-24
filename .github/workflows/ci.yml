@@ -14,7 +14,7 @@ env:
 jobs:
   test:
     name: Rust ${{matrix.rust}}
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, podman]
     strategy:
       fail-fast: false
       matrix:
@@ -52,7 +52,7 @@ jobs:
 
   msrv:
     name: Rust MSRV (1.85.0)
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, podman]
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v6
@@ -61,7 +61,7 @@ jobs:
 
   fmt:
     name: Format Check
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, podman]
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v6
@@ -72,7 +72,7 @@ jobs:
 
   clippy:
     name: Clippy
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, podman]
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v6
@@ -83,7 +83,7 @@ jobs:
 
   doc:
     name: Documentation
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, podman]
     timeout-minutes: 45
     env:
       RUSTDOCFLAGS: -Dwarnings
@@ -94,7 +94,7 @@ jobs:
 
   security_audit:
     name: Security Audit
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, podman]
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v6
@@ -105,7 +105,7 @@ jobs:
 
   cargo_deny:
     name: Cargo Deny
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, podman]
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v6
@@ -113,7 +113,7 @@ jobs:
 
   miri:
     name: Miri
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, podman]
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v6

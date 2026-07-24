@@ -20,7 +20,7 @@ jobs:
   # --- Rust advisory DB (RUSTSEC) ------------------------------------------
   cargo-audit:
     name: cargo-audit (RUSTSEC)
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, podman]
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
@@ -31,7 +31,7 @@ jobs:
   # --- broadest cross-ecosystem vuln DB ------------------------------------
   osv-scanner:
     name: OSV-Scanner
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, podman]
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
@@ -45,7 +45,7 @@ jobs:
   # --- filesystem CVE / secret / misconfig / license -----------------------
   trivy:
     name: Trivy (vuln+secret+config+license)
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, podman]
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
@@ -61,7 +61,7 @@ jobs:
   # --- unsafe-code surface (matters for a proc-macro) ----------------------
   cargo-geiger:
     name: cargo-geiger (unsafe audit)
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, podman]
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
@@ -73,7 +73,7 @@ jobs:
   # --- secrets, deep history ----------------------------------------------
   gitleaks-deep:
     name: gitleaks (full history)
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, podman]
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
