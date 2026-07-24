@@ -39,11 +39,15 @@ jobs:
     runs-on: [self-hosted, linux, x64, podman]
     strategy:
       fail-fast: false
+      # Cap concurrent rungs. The self-hosted podman fleet is memory-capped; running every
+      # rung at once meant multiple simultaneous `rustup toolchain install` + build processes,
+      # which the OOM killer terminated mid-install (exit 137). Serialize into small batches.
+      max-parallel: 2
       matrix:
         rust: [nightly, beta, stable, 1.85.0]
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{matrix.rust}}
@@ -51,7 +55,7 @@ jobs:
         run: echo RUSTFLAGS=${RUSTFLAGS}\ -Zrandomize-layout >> $GITHUB_ENV
         if: matrix.rust == 'nightly'
       - run: cargo test
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: matrix.rust == 'nightly' && always()
         with:
           name: Cargo.lock
@@ -65,13 +69,16 @@ jobs:
     timeout-minutes: 45
     strategy:
       fail-fast: false
+      # Cap concurrent rungs — see the OOM note on the test matrix above. Seven simultaneous
+      # toolchain installs + lib builds on the memory-capped fleet OOM-killed rustup (exit 137).
+      max-parallel: 2
       matrix:
         # Full compat spread: declared MSRV 1.31 (upstream paste's floor) up through
         # current. Lib-only `cargo build` — proves the crate COMPILES on each toolchain
         # without pulling dev-deps (trybuild/rustversion) that don't support old Rust.
         rust: ["1.31.0", "1.45.2", "1.56.1", "1.65.0", "1.74.1", "1.85.0", "1.96.0"]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.rust }}
@@ -92,7 +99,7 @@ jobs:
     env:
       RUSTDOCFLAGS: -Dwarnings
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@nightly
       # Self-hosted: dtolnay/install binary is not on the runner (exit 127).
       # Install cargo-docs-rs so package.metadata.docs.rs is honored.
@@ -106,7 +113,7 @@ jobs:
     runs-on: [self-hosted, linux, x64, podman]
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@clippy
       - run: cargo clippy --tests -- -Dclippy::all -Dclippy::pedantic
 
@@ -117,7 +124,7 @@ jobs:
     runs-on: [self-hosted, linux, x64, podman]
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@miri
       - run: cargo miri setup
       - run: cargo miri test
@@ -133,7 +140,7 @@ jobs:
       # prebuilt binary that is not on this runner (exit 127). Install via cargo.
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@stable
       # Zero-dependency crate: nothing can be out of date. cargo-outdated
       # (and its dtolnay attestation binary) are unavailable on the runner,
@@ -155,7 +162,7 @@ jobs:
     runs-on: [self-hosted, linux, x64, podman]
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt

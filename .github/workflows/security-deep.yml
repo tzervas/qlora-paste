@@ -20,7 +20,7 @@ jobs:
     runs-on: [self-hosted, linux, x64, podman]
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@stable
       - run: command -v cargo-audit >/dev/null 2>&1 || cargo install cargo-audit --locked
       # Self-hosted runners persist ~/.cargo between jobs; a partially-populated
@@ -34,7 +34,7 @@ jobs:
     runs-on: [self-hosted, linux, x64, podman]
     timeout-minutes: 25
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@stable
       - run: command -v cargo-geiger >/dev/null 2>&1 || cargo install cargo-geiger --locked || true
       - run: cargo geiger --all-features || true   # informational
@@ -44,7 +44,7 @@ jobs:
     runs-on: [self-hosted, linux, x64, podman]
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Ensure trivy
         run: |
           set -euo pipefail
@@ -59,7 +59,7 @@ jobs:
     runs-on: [self-hosted, linux, x64, podman]
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Ensure osv-scanner
         run: |
           set -euo pipefail
@@ -75,7 +75,7 @@ jobs:
     runs-on: [self-hosted, linux, x64, podman]
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - run: gitleaks detect --source . --redact --no-banner
