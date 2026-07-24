@@ -1,0 +1,24 @@
+name: cargo-deny
+# Supply-chain gate on every change: advisories (RUSTSEC), licenses, banned crates,
+# and source registries — per deny.toml. Meta/security check, so GitHub-hosted
+# (no product build; consistent with the fleet's meta-workflow convention). The
+# existing ci.yml runs cargo-deny only on manual dispatch; this makes it automatic.
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  cargo-deny:
+    name: cargo deny check
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: EmbarkStudios/cargo-deny-action@v2
+        with:
+          command: check advisories bans licenses sources
