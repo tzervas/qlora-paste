@@ -43,7 +43,7 @@ jobs:
         rust: [nightly, beta, stable, 1.85.0]
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{matrix.rust}}
@@ -71,7 +71,7 @@ jobs:
         # without pulling dev-deps (trybuild/rustversion) that don't support old Rust.
         rust: ["1.31.0", "1.45.2", "1.56.1", "1.65.0", "1.74.1", "1.85.0", "1.96.0"]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.rust }}
@@ -92,7 +92,7 @@ jobs:
     env:
       RUSTDOCFLAGS: -Dwarnings
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@nightly
       # Self-hosted: dtolnay/install binary is not on the runner (exit 127).
       # Install cargo-docs-rs so package.metadata.docs.rs is honored.
@@ -106,7 +106,7 @@ jobs:
     runs-on: [self-hosted, linux, x64, podman]
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@clippy
       - run: cargo clippy --tests -- -Dclippy::all -Dclippy::pedantic
 
@@ -117,7 +117,7 @@ jobs:
     runs-on: [self-hosted, linux, x64, podman]
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@miri
       - run: cargo miri setup
       - run: cargo miri test
@@ -133,7 +133,7 @@ jobs:
       # prebuilt binary that is not on this runner (exit 127). Install via cargo.
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@stable
       # Zero-dependency crate: nothing can be out of date. cargo-outdated
       # (and its dtolnay attestation binary) are unavailable on the runner,
@@ -155,7 +155,7 @@ jobs:
     runs-on: [self-hosted, linux, x64, podman]
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt
