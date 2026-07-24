@@ -104,7 +104,6 @@ jobs:
   clippy:
     name: Clippy
     runs-on: [self-hosted, linux, x64, podman]
-    if: github.event_name != 'pull_request'
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
