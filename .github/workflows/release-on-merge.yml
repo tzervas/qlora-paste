@@ -1,9 +1,12 @@
 name: release-on-merge
 # Automated release + crates.io publish when a version bump lands on the default
 # branch. On push to master/main it checks whether Cargo.toml's version already has
-# a matching `v<version>` tag; if NOT, it gates (test/clippy/fmt), tags, cuts a
-# GitHub release from the CHANGELOG, and publishes to crates.io. Idempotent: an
-# existing tag → no-op. Requires the CARGO_REGISTRY_TOKEN repo secret.
+# a matching `v<version>` tag; if NOT, it gates (test/clippy/fmt), publishes to
+# crates.io, tags the commit, then cuts a GitHub release from the CHANGELOG.
+# Publish runs BEFORE the cosmetic release step so nothing can block it; the
+# release step uses the REST API (no `gh` binary on the self-hosted runner) and is
+# non-fatal. Idempotent: existing tag → no-op; already-on-index → skip publish.
+# Requires the CARGO_REGISTRY_TOKEN repo secret.
 on:
   push:
     branches: [master, main]
@@ -67,28 +70,64 @@ jobs:
           cargo clippy --all-targets --all-features -- -D warnings
           cargo fmt --all -- --check
 
-      - name: Tag + GitHub release
+      # Publish is the critical, order-sensitive deliverable and runs BEFORE the
+      # cosmetic GitHub-release step, so a release-API hiccup can never block the
+      # crates.io publish (which is exactly what happened when `gh` was absent on
+      # the self-hosted runner and its exit-127 aborted the job before publish).
+      # Idempotent: if the version is already on the sparse index we treat it as
+      # done, so re-runs and any publish/tag ordering are safe.
+      - name: Publish to crates.io
+        if: steps.ver.outputs.release_needed == 'true'
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+          V: ${{ steps.ver.outputs.version }}
+        run: |
+          set -euo pipefail
+          # Sparse-index path: first2/next2/name (crates named >=4 chars).
+          IDX="https://index.crates.io/ql/or/qlora-paste"
+          if curl -sf -H "User-Agent: qlora-paste-release-ci" "$IDX" | grep -q "\"vers\":\"$V\""; then
+            echo "v$V already on crates.io — skipping publish (idempotent)."
+          elif [ -z "${CARGO_REGISTRY_TOKEN:-}" ]; then
+            echo "CARGO_REGISTRY_TOKEN not set — skipping crates.io publish." >&2
+          else
+            cargo publish
+          fi
+
+      - name: Tag release commit
+        if: steps.ver.outputs.release_needed == 'true'
+        env:
+          V: ${{ steps.ver.outputs.version }}
+        run: |
+          set -euo pipefail
+          if git rev-parse "v$V" >/dev/null 2>&1; then
+            echo "tag v$V already exists — skipping."
+          else
+            git tag "v$V"
+            git push origin "v$V"
+          fi
+
+      # Cosmetic: cut a GitHub release from the CHANGELOG. Uses the REST API via
+      # curl (no `gh` binary on the self-hosted podman runner) and is non-fatal —
+      # the crate is already published + tagged by the time we get here.
+      - name: GitHub release (non-fatal)
         if: steps.ver.outputs.release_needed == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           V: ${{ steps.ver.outputs.version }}
         run: |
-          set -euo pipefail
-          git tag "v$V"
-          git push origin "v$V"
-          # Notes: the [v$V] CHANGELOG section if present, else a default line.
+          set -uo pipefail
           NOTES=$(awk -v v="$V" '$0 ~ "^## \\[" v "\\]"{f=1;next} f&&/^## \[/{exit} f' CHANGELOG.md)
           [ -z "$NOTES" ] && NOTES="Release v$V"
-          printf '%s\n' "$NOTES" | gh release create "v$V" --title "v$V" --notes-file -
-
-      - name: Publish to crates.io
-        if: steps.ver.outputs.release_needed == 'true'
-        env:
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
-        run: |
-          set -euo pipefail
-          if [ -z "${CARGO_REGISTRY_TOKEN:-}" ]; then
-            echo "CARGO_REGISTRY_TOKEN not set — skipping crates.io publish (tag+release still cut)." >&2
-            exit 0
+          BODY=$(printf '%s' "$NOTES" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read()))')
+          code=$(curl -s -o /tmp/gh_rel.json -w '%{http_code}' -X POST \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases" \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            -d "{\"tag_name\":\"v$V\",\"name\":\"v$V\",\"body\":$BODY}")
+          if [ "$code" = "201" ]; then
+            echo "GitHub release v$V created."
+          else
+            echo "GitHub release POST returned $code (non-fatal; crate published + tagged):" >&2
+            cat /tmp/gh_rel.json >&2 || true
           fi
-          cargo publish
