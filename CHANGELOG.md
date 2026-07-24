@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.22] - 2026-07-24
+
+### Fixed
+- README build-status badge pointed at a non-existent `ci.yml` workflow ("workflow
+  not found" on the crates.io/README badge); now targets the real `upstream-ci.yml`.
+- `MIGRATION.md` MSRV section was inverted — it claimed a 1.92.0 MSRV and advised
+  staying on upstream `paste` for older Rust. The fork restored **MSRV 1.31.0**
+  (CI-validated 1.31→1.96); corrected so migrating keeps old-toolchain support.
+
+### Changed
+- CI: capped MSRV/test matrix parallelism (`max-parallel: 2`) to stop OOM toolchain
+  kills on the self-hosted fleet.
+- CI: bumped GitHub Actions — `actions/checkout` v4→v7, `actions/upload-artifact`
+  v4→v7, `astral-sh/setup-uv` v5→v7, `github/codeql-action` v3→v4.
+
 ## [1.0.21] - 2026-07-24
 
 ### Changed
