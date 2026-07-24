@@ -3,7 +3,7 @@
 # (archived read-only 2024-10-06). Changes vs upstream:
 #   - pre_ci reusable workflow from dtolnay/.github is inlined as a no-op gate
 #     (external reusable workflow may be unavailable / archive-coupled)
-#   - MSRV job uses 1.85.0 (this fork's verified MSRV) instead of 1.31.0
+#   - MSRV job is a matrix over 1.31.0 -> 1.96.0 (lib build) validating the full range
 #   - test matrix includes 1.85.0 instead of 1.56.0
 #   - checkout action kept at v4 to match upstream file; runners must support it
 # Bar: "upstream's own CI would have accepted this" for the equivalent jobs.
