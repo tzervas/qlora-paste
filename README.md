@@ -10,7 +10,7 @@ Macros for all your token pasting needs
 [<img alt="crates.io" src="https://img.shields.io/crates/v/qlora-paste.svg?style=for-the-badge&color=fc8d62&logo=rust" height="20">](https://crates.io/crates/qlora-paste)
 [<img alt="docs.rs" src="https://img.shields.io/badge/docs.rs-qlora--paste-66c2a5?style=for-the-badge&labelColor=555555&logo=docs.rs" height="20">](https://docs.rs/qlora-paste)
 [<img alt="build status" src="https://img.shields.io/github/actions/workflow/status/tzervas/qlora-paste/ci.yml?branch=master&style=for-the-badge" height="20">](https://github.com/tzervas/qlora-paste/actions?query=branch%3Amaster)
-[<img alt="msrv" src="https://img.shields.io/badge/MSRV-1.31-blue?style=for-the-badge" height="20">](https://github.com/tzervas/qlora-paste)
+[<img alt="msrv" src="https://img.shields.io/crates/msrv/qlora-paste?style=for-the-badge&color=blue&label=MSRV" height="20">](https://crates.io/crates/qlora-paste)
 [<img alt="maintenance" src="https://img.shields.io/badge/maintenance-actively--maintained-brightgreen?style=for-the-badge" height="20">](https://github.com/tzervas/qlora-paste)
 
 > **Maintenance notice.** This is an actively maintained fork of
